@@ -3,9 +3,10 @@ import os
 import re
 from selenium import webdriver
 from bs4 import BeautifulSoup
+import time
 
 driver=webdriver.Chrome()
-def DownloadPicture(url,Referer='http://manhua.dmzj.com/',Name='test.jpg'):
+def DownloadPicture(url,Referer='http://manhua.dmzj.com/',Name='test.jpg'): # 下载图片,如果没有refers会报403
     Headers={
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66',
         'Referer': Referer
@@ -15,7 +16,7 @@ def DownloadPicture(url,Referer='http://manhua.dmzj.com/',Name='test.jpg'):
     with open(Name,'wb') as f:
         f.write(Res.content)
 
-def DeleteAllFileInFolder(path):
+def DeleteAllFileInFolder(path): #删除已经存在的章节
     os.chdir(path)
     FileList=os.listdir()
     for x in FileList:
@@ -27,7 +28,7 @@ def DeleteAllFileInFolder(path):
     os.chdir('..')
     os.rmdir(path)
 
-def GetChapter1(url,ChapterName=""):
+def GetChapter1(url,ChapterName=""):# 下载manhua.dmzj的章节
     print("Chapter Name:",ChapterName)
     print("Chapter URL:",url)
     if ChapterName != "":
@@ -53,6 +54,8 @@ def GetChapter1(url,ChapterName=""):
         if Picturelink=='//images.dmzj.com/undefined':
             break
         DownloadPicture('http:'+Picturelink,Name=str(PageName)+'.jpg')
+        time.sleep(1)
+        
     os.chdir('..')
 
 # if __name__ == 'getchapter':
@@ -60,7 +63,7 @@ def GetChapter1(url,ChapterName=""):
 #     # %E5%86%B7%E6%B7%A1%E7%9A%84%E4%BD%90%E8%97%A4%E5%90%8C%E5%AD%A6%E5%8F%AA%E5%AF%B9%E6%88%91%E6%92%92%E5%A8%87/%E7%AC%AC02%E8%AF%9D/pic_001%20%E6%8B%B7%E8%B4%9D.jpg","l\/%E5%86%B7%E6%B7%A1%E7%9A%84%E4%BD%90%E8%97%A4%E5%90%8C%E5%AD%A6%E5%8F%AA%E5%AF%B9%E6%88%91%E6%92%92%E5%A8%87\/%E7%AC%AC02%E8%AF%9D\/pic_001.jpg","l\/%E5%86%B7%E6%B7%A1%E7%9A%84%E4%BD%90%E8%97%A4%E5%90%8C%E5%AD%A6%E5%8F%AA%E5%AF%B9%E6%88%91%E6%92%92%E5%A8%87\/%E7%AC%AC02%E8%AF%9D\/pic_002%20%E6%8B%B7%E8%B4%9D.jpg
 #     GetChapter('http://manhua.dmzj.com/lendandezuotentongxuezhiduiwosajiao/98570.shtml')
 
-def GetChapter2(url,ChapterName=""):
+def GetChapter2(url,ChapterName=""): #下载www.dmzj的章节
     print("Chapter Name:",ChapterName)
     print("Chapter URL:",url)
     if ChapterName != "":
@@ -86,6 +89,8 @@ def GetChapter2(url,ChapterName=""):
         if Link=='https://images.dmzj.com/undefined':
             break
         DownloadPicture(Link,Name=str(PageName)+'.jpg')
+        time.sleep(1)
+
     os.chdir('..')
 
 def MainWorker1(url): # 解析manhua.dmzj.com
