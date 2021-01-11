@@ -2,6 +2,7 @@ import requests
 import os
 import re
 from selenium import webdriver
+from bs4 import BeautifulSoup
 
 driver=webdriver.Chrome()
 def DownloadPicture(url,Referer='http://manhua.dmzj.com/',Name='test.jpg'):
@@ -26,7 +27,7 @@ def DeleteAllFileInFolder(path):
     os.chdir('..')
     os.rmdir(path)
 
-def GetChapter(url,ChapterName=""):
+def GetChapter1(url,ChapterName=""):
     print("Chapter Name:",ChapterName)
     print("Chapter URL:",url)
     if ChapterName != "":
@@ -59,7 +60,35 @@ def GetChapter(url,ChapterName=""):
 #     # %E5%86%B7%E6%B7%A1%E7%9A%84%E4%BD%90%E8%97%A4%E5%90%8C%E5%AD%A6%E5%8F%AA%E5%AF%B9%E6%88%91%E6%92%92%E5%A8%87/%E7%AC%AC02%E8%AF%9D/pic_001%20%E6%8B%B7%E8%B4%9D.jpg","l\/%E5%86%B7%E6%B7%A1%E7%9A%84%E4%BD%90%E8%97%A4%E5%90%8C%E5%AD%A6%E5%8F%AA%E5%AF%B9%E6%88%91%E6%92%92%E5%A8%87\/%E7%AC%AC02%E8%AF%9D\/pic_001.jpg","l\/%E5%86%B7%E6%B7%A1%E7%9A%84%E4%BD%90%E8%97%A4%E5%90%8C%E5%AD%A6%E5%8F%AA%E5%AF%B9%E6%88%91%E6%92%92%E5%A8%87\/%E7%AC%AC02%E8%AF%9D\/pic_002%20%E6%8B%B7%E8%B4%9D.jpg
 #     GetChapter('http://manhua.dmzj.com/lendandezuotentongxuezhiduiwosajiao/98570.shtml')
 
-def MainWorker(url):
+def GetChapter2(url,ChapterName=""):
+    print("Chapter Name:",ChapterName)
+    print("Chapter URL:",url)
+    if ChapterName != "":
+        FileList=os.listdir()
+        if ChapterName in FileList:
+            if os.path.isdir(ChapterName):
+                DeleteAllFileInFolder(os.path.join(os.getcwd(),ChapterName))
+            else:
+                os.remove(ChapterName)
+        os.mkdir(ChapterName)
+        os.chdir(ChapterName)
+    else:
+        return
+    PageName = 0
+    while True:
+        PageName = PageName+1
+        print("getting page",PageName,"...")
+        driver.get(url+'#@page='+str(PageName))
+        text=driver.find_element_by_css_selector('div.comic_wraCon.autoHeight').get_attribute('innerHTML')
+        soup=BeautifulSoup(text)
+        Link=soup.find('img')['src']
+        # print(soup.find('img')['src'])
+        if Link=='https://images.dmzj.com/undefined':
+            break
+        DownloadPicture(Link,Name=str(PageName)+'.jpg')
+    os.chdir('..')
+
+def MainWorker1(url): # 解析manhua.dmzj.com
     UserAgent={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66'} # 请求头
     Res=requests.get(url=url,headers=UserAgent)
     print('status_code =',Res.status_code)
@@ -82,15 +111,39 @@ def MainWorker(url):
         ChapterDetail.append(('http://manhua.dmzj.com'+Data[0],Data[1]))
     for x,y in ChapterDetail:
         print("Getting",y)
-        GetChapter(x,y)
+        GetChapter1(x,y)
+    print('finish')
+
+def MainWorker2(url): # 解析www.dmzj.com 
+    Headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66'}
+    Res=requests.get(url='https://www.dmzj.com/info/buxihuannverfanerxihuanmamawoma.html',headers=Headers)
+    print(Res.status_code)
+    print(Res.encoding)
+    Res.encoding=Res.apparent_encoding
+    soup=BeautifulSoup(Res.text,'html.parser')
+    ComicName=soup.find('div',class_='comic_deCon').h1.a.text
+    print(ComicName)
+    FileList=os.listdir()
+    if(ComicName not in FileList):
+        os.mkdir(ComicName)
+    os.chdir(ComicName)
+    ChapterList=soup.find('div',class_='tab-content tab-content-selected zj_list_con autoHeight').find_all('li')
+    for x in ChapterList:
+        print("Getting",x.text)
+        GetChapter2(x.a['href'],x.text)
+    print('finish!')
 
 if __name__ == '__main__':
     UrlList=[]
+    # UrlList.append(input())
     with open('url.txt','r') as f:
-        UrlList.append(f.read())
+        UrlList=f.readlines()
+    UrlList=map(lambda str:str.strip('\n'),UrlList)
     for x in UrlList:
         print(x)
-        MainWorker(x)
+        SwitchRegex=re.compile(r'http://manhua.dmzj.com/')
+        if SwitchRegex.match(x) != None:
+            MainWorker1(x)
+        else:
+            MainWorker2(x)
     driver.quit()
-    # print(GetComicChapterAndLink.search(Res.text).group(1),GetComicChapterAndLink.search(Res.text).group(2))
-    # print(Res.text)
