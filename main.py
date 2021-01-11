@@ -59,9 +59,8 @@ def GetChapter(url,ChapterName=""):
 #     # %E5%86%B7%E6%B7%A1%E7%9A%84%E4%BD%90%E8%97%A4%E5%90%8C%E5%AD%A6%E5%8F%AA%E5%AF%B9%E6%88%91%E6%92%92%E5%A8%87/%E7%AC%AC02%E8%AF%9D/pic_001%20%E6%8B%B7%E8%B4%9D.jpg","l\/%E5%86%B7%E6%B7%A1%E7%9A%84%E4%BD%90%E8%97%A4%E5%90%8C%E5%AD%A6%E5%8F%AA%E5%AF%B9%E6%88%91%E6%92%92%E5%A8%87\/%E7%AC%AC02%E8%AF%9D\/pic_001.jpg","l\/%E5%86%B7%E6%B7%A1%E7%9A%84%E4%BD%90%E8%97%A4%E5%90%8C%E5%AD%A6%E5%8F%AA%E5%AF%B9%E6%88%91%E6%92%92%E5%A8%87\/%E7%AC%AC02%E8%AF%9D\/pic_002%20%E6%8B%B7%E8%B4%9D.jpg
 #     GetChapter('http://manhua.dmzj.com/lendandezuotentongxuezhiduiwosajiao/98570.shtml')
 
-if __name__ == '__main__':
-    url='http://manhua.dmzj.com/lendandezuotentongxuezhiduiwosajiao'
-    UserAgent={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66'}
+def MainWorker(url):
+    UserAgent={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66'} # 请求头
     Res=requests.get(url=url,headers=UserAgent)
     print('status_code =',Res.status_code)
     GetComicTitle=re.compile(r'<div class="odd_anim_title_m"[ ]*>[\d\D]*?<span class="anim_title_text">[\d\D]*<a.*>[\d\D]*<h1>(.*)</h1>') # 获取漫画名称
@@ -84,6 +83,14 @@ if __name__ == '__main__':
     for x,y in ChapterDetail:
         print("Getting",y)
         GetChapter(x,y)
+
+if __name__ == '__main__':
+    UrlList=[]
+    with open('url.txt','r') as f:
+        UrlList.append(f.read())
+    for x in UrlList:
+        print(x)
+        MainWorker(x)
     driver.quit()
     # print(GetComicChapterAndLink.search(Res.text).group(1),GetComicChapterAndLink.search(Res.text).group(2))
     # print(Res.text)
