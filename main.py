@@ -4,15 +4,52 @@ import re
 from selenium import webdriver
 from bs4 import BeautifulSoup
 import time
-
+import MySQLdb
+import MySQLdb.cursors
 driver=webdriver.Chrome()
+conn=MySQLdb.connect(host='localhost',user='root',passwd='********',database='scraping_proxy',autocommit = True,cursorclass=MySQLdb.cursors.DictCursor)
 def DownloadPicture(url,Referer='http://manhua.dmzj.com/',Name='test.jpg'): # 下载图片,如果没有refers会报403
     Headers={
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66',
         'Referer': Referer
     }
-    Res=requests.get(url=url,headers=Headers)
-    print(Res.status_code)
+    cur=conn.cursor()
+    SwitchHttps=re.compile('https://')
+    IsHttps=False
+    if SwitchHttps.match(url)!=None:
+        IsHttps=True
+    if IsHttps:
+        command=r'SELECT * FROM proxies WHERE type="https"'
+    else:
+        command=r'SELECT * FROM proxies WHERE type="http"'
+    cur.execute(command)
+    ProxyDict=cur.fetchone()
+    success=False
+    try:
+        print('using proxy',ProxyDict)
+        if IsHttps:
+            Res=requests.get(url=url,headers=Headers,proxies={'https':ProxyDict['url']})
+        else:
+            Res=requests.get(url=url,headers=Headers,proxies={'http':ProxyDict['url']})
+        print(Res.status_code)
+    except:
+        success=False
+    else:
+        success=(Res.status_code==200)
+    while success != True:
+        ProxyDict=cur.fetchone()
+        print('using proxy',ProxyDict)
+        try:
+            if IsHttps:
+                Res=requests.get(url=url,headers=Headers,proxies={'https':ProxyDict['url']})
+            else:
+                Res=requests.get(url=url,headers=Headers,proxies={'http':ProxyDict['url']})
+            print(Res.status_code)
+        except:
+            success=False
+        else:
+            success=(Res.status_code==200)
+    cur.close()
     with open(Name,'wb') as f:
         f.write(Res.content)
 
@@ -151,4 +188,5 @@ if __name__ == '__main__':
             MainWorker1(x)
         else:
             MainWorker2(x)
+    conn.close()
     driver.quit()
