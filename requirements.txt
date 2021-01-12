@@ -8,8 +8,10 @@ idna==2.10
 isort==5.7.0
 lazy-object-proxy==1.4.3
 mccabe==0.6.1
+mysqlclient @ file:///D:/coding/project/DMZJ-Spider/venv/mysqlclient-1.4.6-cp38-cp38-win32.whl
 pylint==2.6.0
 requests==2.25.1
+rope==0.18.0
 selenium==3.141.0
 six==1.15.0
 soupsieve==2.1
