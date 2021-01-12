@@ -157,10 +157,11 @@ def MainWorker1(url): # 解析manhua.dmzj.com
         print("Getting",y)
         GetChapter1(x,y)
     print('finish')
+    os.chdir('..')
 
 def MainWorker2(url): # 解析www.dmzj.com 
     Headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66'}
-    Res=requests.get(url='https://www.dmzj.com/info/buxihuannverfanerxihuanmamawoma.html',headers=Headers)
+    Res=requests.get(url=url,headers=Headers)
     print(Res.status_code)
     print(Res.encoding)
     Res.encoding=Res.apparent_encoding
@@ -176,6 +177,7 @@ def MainWorker2(url): # 解析www.dmzj.com
         print("Getting",x.text)
         GetChapter2(x.a['href'],x.text)
     print('finish!')
+    os.chdir('..')
 
 if __name__ == '__main__':
     UrlList=[]
@@ -183,6 +185,10 @@ if __name__ == '__main__':
     with open('url.txt','r') as f:
         UrlList=f.readlines()
     UrlList=map(lambda str:str.strip('\n'),UrlList)
+    FileList=os.listdir()
+    if('Downloads' not in FileList):
+        os.mkdir('Downloads')
+    os.chdir('Downloads')
     for x in UrlList:
         print(x)
         SwitchRegex=re.compile(r'http://manhua.dmzj.com/')
