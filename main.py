@@ -13,6 +13,7 @@ def DownloadPicture(url,Referer='http://manhua.dmzj.com/',Name='test.jpg'): # �
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66',
         'Referer': Referer
     }
+    print('pictureURL:',url)
     cur=conn.cursor()
     SwitchHttps=re.compile('https://')
     IsHttps=False
@@ -23,19 +24,20 @@ def DownloadPicture(url,Referer='http://manhua.dmzj.com/',Name='test.jpg'): # �
     else:
         command=r'SELECT * FROM proxies WHERE type="http"'
     cur.execute(command)
-    ProxyDict=cur.fetchone()
     success=False
     try:
-        print('using proxy',ProxyDict)
+        print('using localhost')
         if IsHttps:
-            Res=requests.get(url=url,headers=Headers,proxies={'https':ProxyDict['url']})
+            Res=requests.get(url=url,headers=Headers)
         else:
-            Res=requests.get(url=url,headers=Headers,proxies={'http':ProxyDict['url']})
+            Res=requests.get(url=url,headers=Headers)
         print(Res.status_code)
     except:
         success=False
     else:
         success=(Res.status_code==200)
+        # if success: 
+            # time.sleep(0.01)
     while success != True:
         ProxyDict=cur.fetchone()
         print('using proxy',ProxyDict)
@@ -85,13 +87,13 @@ def GetChapter1(url,ChapterName=""):# 下载manhua.dmzj的章节
         print("getting page",PageName,"...")
         driver.get(url+'#@page='+str(PageName))
         PictureString=driver.find_element_by_css_selector('div#center_box').get_attribute('innerHTML')
-        GetPicturelink=re.compile('<img.*?src="(.*?)">')
+        GetPicturelink=re.compile('<img.*?src="(.*?)".*?>')
         Picturelink=GetPicturelink.search(PictureString).group(1)
         # print(Picturelink)
         if Picturelink=='//images.dmzj.com/undefined':
             break
         DownloadPicture('http:'+Picturelink,Name=str(PageName)+'.jpg')
-        time.sleep(1)
+        # time.sleep(1)
         
     os.chdir('..')
 
